@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Applying AI in Education: Teachable Machine</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #0F172A; /* Slate 900 */
+            color: #E2E8F0; /* Slate 200 */
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            width: 100vw;
+        }
+        #presentation-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            max-width: calc(100vh * 16 / 9);
+            max-height: calc(100vw * 9 / 16);
+            aspect-ratio: 16 / 9;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            overflow: hidden;
+        }
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4vw;
+            opacity: 0;
+            visibility: hidden;
+            transform: scale(0.95);
+            transition: opacity 0.6s ease-in-out, transform 0.6s ease-in-out, visibility 0.6s;
+        }
+        .slide.active {
+            opacity: 1;
+            visibility: visible;
+            transform: scale(1);
+        }
+        .gradient-text {
+            background: linear-gradient(90deg, #38BDF8, #A78BFA, #F472B6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-fill-color: transparent;
+        }
+        .card {
+            background: rgba(30, 41, 59, 0.7); /* Slate 800 with transparency */
+            border: 1px solid #334155; /* Slate 700 */
+            backdrop-filter: blur(10px);
+            animation: fadeIn 0.8s ease-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .slide-content {
+            animation: slideUp 0.7s ease-out forwards;
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .image-placeholder {
+            background-color: transparent;
+            transition: all 0.3s ease;
+        }
+        .image-placeholder:hover {
+            background-color: transparent;
+        }
+        .nav-btn {
+            background: rgba(30, 41, 59, 0.7);
+            border: 1px solid #334155;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        .nav-btn:hover {
+            background: #1E293B; /* Slate 800 */
+            border-color: #38BDF8;
+            transform: scale(1.1);
+        }
+        .nav-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            transform: scale(1);
+            border-color: #334155;
+        }
+        .progress-bar {
+            height: 4px;
+            background-color: #38BDF8;
+            transition: width 0.5s ease;
+        }
+        .presenter-notes {
+            font-size: 0.7rem; /* text-xs */
+            color: #475569; /* Slate 600 */
+            font-style: italic;
+            margin-top: 0.25rem;
+        }
+    </style>
+</head>
+<body class="relative min-h-screen">
+    <!-- Background Gradient Animation -->
+    <div class="absolute top-0 left-0 w-full h-full overflow-hidden -z-10">
+        <div class="absolute top-[-20%] left-[-20%] w-[60vw] h-[60vw] bg-purple-500 rounded-full filter blur-3xl opacity-20 animate-blob"></div>
+        <div class="absolute top-[10%] right-[-15%] w-[50vw] h-[50vw] bg-sky-500 rounded-full filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+        <div class="absolute bottom-[-10%] left-[20%] w-[40vw] h-[40vw] bg-pink-500 rounded-full filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
+    </div>
+    <style>
+        @keyframes blob {
+            0% { transform: translate(0px, 0px) scale(1); }
+            33% { transform: translate(30px, -50px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+            100% { transform: translate(0px, 0px) scale(1); }
+        }
+        .animation-delay-2000 { animation-delay: 2s; }
+        .animation-delay-4000 { animation-delay: 4s; }
+    </style>
+
+    <main id="presentation-container">
+        <!-- Slide 1: General Introduction -->
+        <section class="slide active" id="slide-1">
+            <div class="slide-content text-center max-w-5xl w-full">
+                <h2 class="text-4xl md:text-5xl font-semibold text-sky-400">Applying AI in Education</h2>
+                <h1 class="text-6xl md:text-7xl font-bold mt-2 mb-4 py-4 leading-tight gradient-text">Building and Understanding Machine Learning Models</h1>
+                <p class="text-3xl md:text-4xl text-slate-300">with Teachable Machine</p>
+                <div class="mt-12 border-t border-slate-700 pt-8">
+                    <p class="text-3xl font-semibold">Mr. Vu Khang</p>
+                    <p class="text-2xl text-slate-400 mt-2">Lawrence S. Ting School, Ho Chi Minh City</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 2: Initial Challenge & Tool Selection -->
+        <section class="slide" id="slide-2">
+            <div class="slide-content max-w-6xl w-full grid md:grid-cols-2 gap-8 items-center">
+                <div class="space-y-10">
+                    <div>
+                        <h3 class="flex items-center text-5xl font-bold text-pink-400 mb-4">
+                            <i data-lucide="alert-triangle" class="w-10 h-10 mr-4"></i>Initial Challenge
+                        </h3>
+                        <p class="presenter-notes">Thách thức ban đầu</p>
+                        <ul class="list-disc list-inside space-y-3 text-2xl text-slate-300 pl-3">
+                            <li>Students perceive AI as abstract and inaccessible.
+                                <p class="presenter-notes">Học sinh xem trí tuệ nhân tạo (AI) là một khái niệm trừu tượng và xa vời.</p>
+                            </li>
+                            <li>Lacked hands-on experience connecting data, bias, and model accuracy.
+                                <p class="presenter-notes">Các em thiếu trải nghiệm thực hành để hiểu mối liên hệ giữa dữ liệu, thiên kiến (bias) và độ chính xác của mô hình.</p>
+                            </li>
+                            <li class="font-semibold text-slate-100 mt-3">How to make AI learning experiential, engaging, and ethical?
+                                 <p class="presenter-notes font-normal">Câu hỏi đặt ra: Làm thế nào để việc học AI trở nên trực quan, hấp dẫn và có ý nghĩa đạo đức?</p>
+                            </li>
+                        </ul>
+                    </div>
+                     <div>
+                        <h3 class="flex items-center text-4xl font-bold text-purple-400 mb-4">
+                            <i data-lucide="lightbulb" class="w-10 h-10 mr-4"></i>Rationale for Selection
+                        </h3>
+                         <p class="presenter-notes">Lý do chọn công cụ</p>
+                        <ul class="list-disc list-inside space-y-3 text-2xl text-slate-300 pl-3">
+                            <li>A no-code AI platform for image, sound, and pose recognition that allows learners to train and test their own AI models.
+                                 <p class="presenter-notes">*Teachable Machine* là nền tảng AI không cần lập trình, cho phép người học tạo mô hình nhận diện hình ảnh, âm thanh hoặc tư thế.</p>
+                            </li>
+                            <li>Freely accessible, browser-based, and intuitive.
+                                <p class="presenter-notes">Dễ truy cập, hoạt động trên trình duyệt web, thân thiện với người dùng.</p>
+                            </li>
+                            <li>Enables immediate visual feedback.
+                                 <p class="presenter-notes">Cung cấp phản hồi trực quan ngay lập tức, giúp học sinh dễ hiểu hơn.</p>
+                            </li>
+                            <li>Supports Project-Based Learning (PBL).
+                                 <p class="presenter-notes">Phù hợp với *phương pháp học theo dự án (PBL)* và phát triển năng lực số cho học sinh.</p>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="image-placeholder w-full h-96 md:h-[325px] rounded-lg flex flex-col items-center justify-center text-slate-500 overflow-hidden">
+                    <img src="https://camnangdayhoc.com/wp-content/uploads/2024/07/Huong-dan-su-dung-Teachable-Machine-12.jpg" alt="Teachable Machine" class="w-full h-full object-contain">
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 3: Implementation - Week 2 -->
+        <section class="slide" id="slide-3">
+             <div class="slide-content max-w-6xl w-full">
+                <h2 class="text-5xl md:text-6xl font-bold mb-2 gradient-text">Implementation Process – Week 2</h2>
+                <p class="text-3xl text-slate-400 mb-8">Introduction to Teachable Machine (80 minutes)
+                     <span class="block presenter-notes font-normal">Quy trình triển khai – Tuần 2: Giới thiệu Teachable Machine (80 phút)</span>
+                </p>
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="card p-8 rounded-lg space-y-4">
+                        <h3 class="text-4xl font-semibold text-sky-400">Learning Flow
+                            <p class="presenter-notes font-normal">Quy trình học:</p>
+                        </h3>
+                        <ol class="list-decimal list-inside space-y-3 text-2xl text-slate-300">
+                            <li><strong>Warm-up Video:</strong> "What is Teachable Machine?"
+                                <p class="presenter-notes font-normal">*Video khởi động:* “Teachable Machine là gì?”</p>
+                            </li>
+                            <li><strong>Activity 1:</strong> Interact with a pre-trained Cat vs. Dog model.
+                                <p class="presenter-notes font-normal">*Hoạt động 1:* Tương tác với mô hình phân loại “chó vs mèo” đã huấn luyện sẵn.</p>
+                            </li>
+                            <li><strong>Activity 2:</strong> Explore & upgrade a model by adding a "Fox" class.
+                                <p class="presenter-notes font-normal">*Hoạt động 2:* Mở và nâng cấp mô hình bằng cách thêm lớp “Cáo (Fox)”.</p>
+                            </li>
+                            <li><strong>Activity 3:</strong> Concept Discussion (AI, ML, Bias).
+                                <p class="presenter-notes font-normal">*Hoạt động 3:* Thảo luận khái niệm (AI, ML, Dữ liệu, Huấn luyện, Thiên kiến).</p>
+                            </li>
+                            <li><strong>Assessment:</strong> Two Canvas Quizzes.
+                                 <p class="presenter-notes font-normal">*Đánh giá:* Hai bài Quiz trên Canvas để củng cố kiến thức.</p>
+                            </li>
+                        </ol>
+                    </div>
+                    <div class="card p-8 rounded-lg space-y-4">
+                        <h3 class="text-4xl font-semibold text-green-400">Results (Week 2)
+                            <p class="presenter-notes font-normal">Kết quả (Tuần 2):</p>
+                        </h3>
+                        <ul class="list-disc list-inside space-y-3 text-2xl text-slate-300">
+                           <li><span class="font-bold text-white">95%</span> of students achieved >90% quiz accuracy.
+                               <p class="presenter-notes font-normal">*95% học sinh đạt trên 90% điểm Quiz.*</p>
+                           </li>
+                           <li class="italic">"AI is only as smart as the data we feed it."
+                               <p class="presenter-notes not-italic font-normal">Học sinh rút ra bài học: “AI chỉ thông minh bằng chính dữ liệu mà con người cung cấp.”</p>
+                           </li>
+                           <li>Engagement was visibly high, testing pets, toys, and objects.
+                                <p class="presenter-notes font-normal">Mức độ tham gia cao, học sinh tự thử nghiệm với hình ảnh thật của thú cưng, đồ vật quanh mình.</p>
+                           </li>
+                        </ul>
+                         <div class="image-placeholder mt-6 w-full h-70 rounded-lg overflow-hidden">
+                            <img src="Minhchung2.png" alt="Evidence 2 - Canvas LMS" width="500" height="400">
+                         </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 4: Implementation - Week 3 -->
+        <section class="slide" id="slide-4">
+            <div class="slide-content max-w-6xl w-full">
+                <h2 class="text-5xl md:text-6xl font-bold mb-2 gradient-text">Implementation Process – Week 3</h2>
+                <p class="text-3xl text-slate-400 mb-8">Your Own Teachable Machine Project (80 minutes)
+                     <span class="block presenter-notes font-normal">Quy trình triển khai – Tuần 3: Dự án Teachable Machine cá nhân (80 phút)</span>
+                </p>
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8 items-start">
+                    <div class="card p-8 rounded-lg lg:col-span-2">
+                        <h3 class="text-4xl font-semibold text-sky-400 mb-4">Activities
+                            <p class="presenter-notes font-normal">Các hoạt động:</p>
+                        </h3>
+                        <div class="space-y-5">
+                            <div>
+                                <h4 class="font-bold text-slate-100 text-2xl">1. Hands-on Project Creation</h4>
+                                <p class="text-slate-300 text-xl">Pairs created projects like waste classification, flower recognition, etc., following structured steps and recording results.
+                                     <span class="block presenter-notes font-normal">*Thực hành tạo dự án:* Học sinh làm việc theo cặp để tạo dự án như phân loại rác, nhận diện hoa, đồ dùng học tập, phương tiện giao thông… Làm theo quy trình cụ thể và ghi chép kết quả.</span>
+                                </p>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-100 text-2xl">2. "Teachable Machine Exhibition"</h4>
+                                <p class="text-slate-300 text-xl">Groups presented projects to peers, using the Glow & Grow model for feedback on strengths and limitations.
+                                    <span class="block presenter-notes font-normal">*“Triển lãm Teachable Machine”:* Các nhóm trình bày sản phẩm, góp ý cho nhau bằng mô hình “Điểm sáng & Góp ý” (Glow & Grow). Thảo luận về điểm mạnh, điểm yếu và bài học rút ra.</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                     <div class="card p-8 rounded-lg">
+                        <h3 class="text-4xl font-semibold text-green-400 mb-4">Outcomes
+                            <p class="presenter-notes font-normal">Kết quả:</p>
+                        </h3>
+                         <ul class="list-disc list-inside space-y-3 text-slate-300 text-xl">
+                           <li>16 groups built models (avg. 85-92% accuracy).
+                               <p class="presenter-notes font-normal">*16 nhóm học sinh hoàn thành mô hình (độ chính xác trung bình 85–92%).*</p>
+                           </li>
+                           <li>Peer interaction deepened understanding.
+                               <p class="presenter-notes font-normal">Hoạt động phản hồi đồng đẳng giúp học sinh hiểu sâu hơn về nguyên tắc hoạt động của AI.</p>
+                           </li>
+                        </ul>
+                     </div>
+                     <div class="image-placeholder w-full h-80 rounded-lg flex flex-col items-center justify-center text-slate-500 lg:col-span-3">
+                         <img src="Minhchung3.png" alt="Evidence 2 - Canvas LMS" width="900" height="300">
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Slide 5: Student Competency Development -->
+        <section class="slide" id="slide-5">
+            <div class="slide-content max-w-6xl w-full">
+                <h2 class="text-5xl md:text-6xl font-bold text-center mb-10 gradient-text">Student Competency Development
+                    <p class="presenter-notes font-normal text-center">Năng lực học sinh được phát triển</p>
+                </h2>
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="card p-6 rounded-lg">
+                        <h3 class="font-bold text-2xl text-sky-400 flex items-center"><i data-lucide="database" class="w-7 h-7 mr-3"></i>Data Literacy</h3>
+                         <p class="presenter-notes font-normal">*Năng lực dữ liệu (Data Literacy)*</p>
+                        <p class="text-xl text-slate-300 mt-2">Curated datasets (50+ images/class) and understood the link between data diversity and accuracy.
+                             <span class="block presenter-notes font-normal">Học sinh thu thập và sắp xếp hơn 50 hình ảnh cho mỗi lớp dữ liệu. Hiểu được mối liên hệ giữa *đa dạng dữ liệu* và *độ chính xác mô hình.*</span>
+                        </p>
+                    </div>
+                    <div class="card p-6 rounded-lg">
+                        <h3 class="font-bold text-2xl text-sky-400 flex items-center"><i data-lucide="brain-circuit" class="w-7 h-7 mr-3"></i>Critical Thinking</h3>
+                         <p class="presenter-notes font-normal">*Tư duy phản biện (Critical Thinking)*</p>
+                        <p class="text-xl text-slate-300 mt-2">Identified causes of misclassification and proposed data-driven solutions.
+                            <span class="block presenter-notes font-normal">Phân tích nguyên nhân sai lệch, xác định lỗi trong dữ liệu và đưa ra hướng cải thiện.</span>
+                        </p>
+                    </div>
+                    <div class="card p-6 rounded-lg">
+                        <h3 class="font-bold text-2xl text-sky-400 flex items-center"><i data-lucide="users" class="w-7 h-7 mr-3"></i>Collaboration</h3>
+                         <p class="presenter-notes font-normal">*Hợp tác (Collaboration)*</p>
+                        <p class="text-xl text-slate-300 mt-2">Worked in pairs to define goals, divide tasks, and present findings.
+                            <span class="block presenter-notes font-normal">Làm việc theo cặp: thống nhất mục tiêu, chia sẻ nhiệm vụ, cùng trình bày kết quả.</span>
+                        </p>
+                    </div>
+                    <div class="card p-6 rounded-lg">
+                        <h3 class="font-bold text-2xl text-sky-400 flex items-center"><i data-lucide="sparkles" class="w-7 h-7 mr-3"></i>Creativity</h3>
+                         <p class="presenter-notes font-normal">*Sáng tạo (Creativity)*</p>
+                        <p class="text-xl text-slate-300 mt-2">Applied AI to real-life contexts and personalized datasets with self-taken photos.
+                            <span class="block presenter-notes font-normal">Ứng dụng AI vào các tình huống đời thực, sử dụng hình ảnh tự chụp để huấn luyện mô hình cá nhân.</span>
+                        </p>
+                    </div>
+                    <div class="card p-6 rounded-lg md:col-span-2 lg:col-span-1">
+                        <h3 class="font-bold text-2xl text-sky-400 flex items-center"><i data-lucide="shield-check" class="w-7 h-7 mr-3"></i>Ethical Use of AI</h3>
+                         <p class="presenter-notes font-normal">*Đạo đức số (Ethical Use of AI)*</p>
+                        <p class="text-xl text-slate-300 mt-2">Reflected on bias, fairness, and privacy, recognizing the need for inclusion and transparency.
+                            <span class="block presenter-notes font-normal">Thảo luận về thiên kiến dữ liệu, công bằng và quyền riêng tư. Nhận thức được vai trò của con người trong việc sử dụng AI có trách nhiệm và minh bạch.</span>
+                        </p>
+                    </div>
+                     <div class="image-placeholder w-full h-48 rounded-lg flex items-center justify-center text-slate-500 md:col-span-2 lg:col-span-1">
+                        <img src="quatrinh4.png" alt="Evidence 2 - Canvas LMS" width="300" height="300">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 6: Challenges & Limitations -->
+        <section class="slide" id="slide-6">
+            <div class="slide-content max-w-6xl w-full">
+                <h2 class="text-5xl md:text-6xl font-bold text-center mb-10 gradient-text">Challenges & Limitations
+                     <p class="presenter-notes font-normal text-center">Thách thức và hạn chế</p>
+                </h2>
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div class="card p-8 rounded-lg space-y-3">
+                        <h3 class="text-4xl font-semibold text-red-400 flex items-center"><i data-lucide="server-crash" class="w-8 h-8 mr-3"></i>Technical</h3>
+                         <p class="presenter-notes font-normal">*Kỹ thuật (Technical)*</p>
+                        <ul class="list-disc list-inside text-slate-300 text-xl">
+                            <li>Limited network bandwidth
+                                <p class="presenter-notes font-normal">Kết nối mạng không ổn định trong khi huấn luyện mô hình.</p>
+                            </li>
+                            <li>Device limitations (webcam, storage)
+                                <p class="presenter-notes font-normal">Một số thiết bị thiếu webcam hoặc dung lượng bộ nhớ.</p>
+                            </li>
+                            <li>Reused training/testing images
+                                <p class="presenter-notes font-normal">Học sinh dùng lại ảnh cũ để test → kết quả thiếu chính xác.</p>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="card p-8 rounded-lg space-y-3">
+                        <h3 class="text-4xl font-semibold text-yellow-400 flex items-center"><i data-lucide="graduation-cap" class="w-8 h-8 mr-3"></i>Pedagogical</h3>
+                         <p class="presenter-notes font-normal">*Sư phạm (Pedagogical)*</p>
+                        <ul class="list-disc list-inside text-slate-300 text-xl">
+                            <li>Balancing curiosity with structure
+                                <p class="presenter-notes font-normal">Khó cân bằng giữa sự tò mò của học sinh và quy trình học có cấu trúc.</p>
+                            </li>
+                            <li>Need for guided reflection
+                                <p class="presenter-notes font-normal">Cần thêm hướng dẫn để học sinh phản tư đúng trọng tâm.</p>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="card p-8 rounded-lg space-y-3">
+                        <h3 class="text-4xl font-semibold text-orange-400 flex items-center"><i data-lucide="scale" class="w-8 h-8 mr-3"></i>Ethical & Conceptual</h3>
+                         <p class="presenter-notes font-normal">*Khái niệm & Đạo đức (Ethical & Conceptual)*</p>
+                        <ul class="list-disc list-inside text-slate-300 text-xl">
+                            <li>Unintentionally biased datasets
+                                <p class="presenter-notes font-normal">Một số nhóm tạo dữ liệu thiên lệch (ví dụ: chỉ chụp ảnh sáng rõ, một góc chụp).</p>
+                            </li>
+                            <li>Reinforcing fair data concepts
+                                <p class="presenter-notes font-normal">Cần nhấn mạnh hơn khái niệm dữ liệu công bằng và đại diện.</p>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="image-placeholder mt-10 w-full h-64 rounded-lg flex flex-col items-center justify-center text-slate-500">
+                    <img src="quatrinh.png" alt="Evidence 2 - Canvas LMS" width="400" height="300">
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 7: Lessons Learned & Tool Evaluation -->
+        <section class="slide" id="slide-7">
+            <div class="slide-content max-w-6xl w-full grid md:grid-cols-2 gap-8">
+                <div class="card p-8 rounded-lg">
+                    <h3 class="text-4xl font-semibold text-green-400 mb-5 flex items-center"><i data-lucide="lightbulb" class="w-8 h-8 mr-3"></i>Key Insights & Lessons Learned
+                        <p class="presenter-notes font-normal">Bài học kinh nghiệm:</p>
+                    </h3>
+                    <ul class="list-disc list-inside space-y-3 text-2xl text-slate-300">
+                        <li>Data <span class="font-bold text-white">quality > quantity</span>.
+                            <p class="presenter-notes font-normal">*Chất lượng dữ liệu quan trọng hơn số lượng.*</p>
+                        </li>
+                        <li>Background (None) class is crucial.
+                             <p class="presenter-notes font-normal">Thêm lớp “Nền (Background)” giúp giảm sai số.</p>
+                        </li>
+                        <li>Peer exhibition = deeper learning.
+                             <p class="presenter-notes font-normal">*Triển lãm đồng đẳng giúp học sâu hơn.*</p>
+                        </li>
+                        <li>AI as a mirror of human bias.
+                             <p class="presenter-notes font-normal">AI phản chiếu định kiến của con người → giúp học sinh hiểu về đạo đức dữ liệu.</p>
+                        </li>
+                        <li>Structured worksheets aid reflection.
+                            <p class="presenter-notes font-normal">Phiếu học tập cấu trúc rõ giúp học sinh tự phản tư tốt hơn.</p>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card p-8 rounded-lg">
+                    <h3 class="text-4xl font-semibold text-sky-400 mb-5 flex items-center"><i data-lucide="check-circle" class="w-8 h-8 mr-3"></i>Tool Evaluation
+                         <p class="presenter-notes font-normal">Đánh giá công cụ Teachable Machine:</p>
+                    </h3>
+                    <div class="grid grid-cols-2 gap-6 text-xl">
+                        <div>
+                            <h4 class="font-bold text-green-400">✅ Strengths
+                                <span class="block presenter-notes font-normal">*Ưu điểm:*</span>
+                            </h4>
+                            <ul class="list-disc list-inside text-slate-300">
+                                <li>User-friendly
+                                    <p class="presenter-notes font-normal">Dễ sử dụng, phản hồi nhanh, hỗ trợ học theo dự án (PBL).</p>
+                                </li>
+                                <li>Immediate feedback
+                                     <p class="presenter-notes font-normal">Khuyến khích sự hứng thú và sáng tạo của học sinh.</p>
+                                </li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-red-400">⚠️ Limitations
+                                 <span class="block presenter-notes font-normal">*Hạn chế:*</span>
+                            </h4>
+                            <ul class="list-disc list-inside text-slate-300">
+                                <li>Lacks analytics
+                                     <p class="presenter-notes font-normal">Thiếu công cụ phân tích chuyên sâu (confusion matrix, precision…).</p>
+                                </li>
+                                <li>Needs strong internet
+                                     <p class="presenter-notes font-normal">Cần mạng mạnh khi huấn luyện.</p>
+                                </li>
+                                <li>Can oversimplify AI
+                                     <p class="presenter-notes font-normal">Có thể khiến học sinh hiểu AI quá đơn giản nếu không có hướng dẫn của giáo viên.</p>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <blockquote class="mt-6 border-l-4 border-purple-400 pl-5 italic text-2xl text-slate-300">
+                        “Students not only trained machines—they trained themselves to think critically about data.”
+                        <p class="presenter-notes not-italic font-normal">“Học sinh không chỉ huấn luyện máy — mà còn tự huấn luyện cách tư duy phản biện về dữ liệu.”</p>
+                    </blockquote>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 8: Recommendations & Summary -->
+        <section class="slide" id="slide-8">
+            <div class="slide-content max-w-6xl w-full">
+                <div class="grid md:grid-cols-2 gap-10">
+                    <div>
+                         <h3 class="text-4xl md:text-5xl font-bold text-sky-400 mb-5"><i data-lucide="arrow-right-circle" class="inline-block w-10 h-10 mr-3"></i>Recommendations for Future Use
+                            <p class="presenter-notes font-normal">Khuyến nghị:</p>
+                         </h3>
+                         <ul class="space-y-4 text-2xl text-slate-300">
+                            <li class="flex items-start"><i data-lucide="shield" class="w-7 h-7 mr-4 mt-1 text-purple-400 flex-shrink-0"></i><span>Embed Ethical AI education (fairness, transparency).
+                                <p class="presenter-notes font-normal">Tích hợp *giáo dục đạo đức AI* (công bằng, minh bạch, trách nhiệm).</p></span></li>
+                            <li class="flex items-start"><i data-lucide="list-checks" class="w-7 h-7 mr-4 mt-1 text-purple-400 flex-shrink-0"></i><span>Add a Data Evaluation Rubric for datasets.
+                                <p class="presenter-notes font-normal">Thêm *rubric đánh giá chất lượng dữ liệu*.</p></span></li>
+                            <li class="flex items-start"><i data-lucide="atom" class="w-7 h-7 mr-4 mt-1 text-purple-400 flex-shrink-0"></i><span>Integrate with Science, Art, or Environmental Studies.
+                                <p class="presenter-notes font-normal">Kết hợp liên môn với Khoa học, Nghệ thuật hoặc Môi trường.</p></span></li>
+                            <li class="flex items-start"><i data-lucide="cpu" class="w-7 h-7 mr-4 mt-1 text-purple-400 flex-shrink-0"></i><span>Combine with Microcontrollers (Arduino/Micro:bit).
+                                <p class="presenter-notes font-normal">Liên kết với *Arduino hoặc Micro:bit* để triển khai AI ngoài thực tế.</p></span></li>
+                            <li class="flex items-start"><i data-lucide="refresh-cw" class="w-7 h-7 mr-4 mt-1 text-purple-400 flex-shrink-0"></i><span>Encourage iterative learning and model retraining.
+                                <p class="presenter-notes font-normal">Khuyến khích *quy trình học tập lặp lại* – huấn luyện, kiểm thử, điều chỉnh và huấn luyện lại.</p></span></li>
+                         </ul>
+                    </div>
+                    <div class="flex flex-col justify-center text-center card p-8 rounded-lg">
+                        <h3 class="text-4xl md:text-5xl font-bold mb-4 gradient-text">Reflective Conclusion
+                            <p class="presenter-notes font-normal text-center">Kết luận phản tư:</p>
+                        </h3>
+                        <p class="text-3xl text-slate-200">
+                            Students didn’t just learn how AI works — they experienced thinking like data scientists: <span class="font-semibold text-white">questioning, testing, and improving with integrity.</span>
+                            <span class="block presenter-notes font-normal">Học sinh không chỉ học cách AI hoạt động, mà còn **học cách tư duy như nhà khoa học dữ liệu** – biết đặt câu hỏi, thử nghiệm và cải thiện với tinh thần trách nhiệm.</span>
+                        </p>
+                        <p class="mt-6 text-2xl text-slate-400">AI literacy can begin early, accessibly, and ethically.
+                            <span class="block presenter-notes font-normal">**Hiểu biết về AI (AI Literacy)** có thể bắt đầu sớm, dễ tiếp cận và mang tính nhân văn nếu được triển khai đúng cách.</span>
+                        </p>
+                         <div class="mt-6 flex justify-center">
+                            <img src="quatrinh3.png" alt="Evidence 2 - Canvas LMS" width="450" height="300" class="rounded-lg">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Navigation -->
+        <footer class="absolute bottom-0 left-0 w-full p-6 z-50">
+            <div class="max-w-6xl mx-auto flex items-center justify-between">
+                <div class="w-1/3">
+                    <span id="slide-counter" class="text-slate-400 font-mono text-xl">1 / 8</span>
+                </div>
+                <div class="w-1/3 flex justify-center items-center space-x-4">
+                    <button id="prev-btn" class="nav-btn p-4 rounded-full text-slate-300 disabled:text-slate-600">
+                        <i data-lucide="arrow-left" class="w-6 h-6"></i>
+                    </button>
+                    <button id="next-btn" class="nav-btn p-4 rounded-full text-slate-300 disabled:text-slate-600">
+                        <i data-lucide="arrow-right" class="w-6 h-6"></i>
+                    </button>
+                </div>
+                <div class="w-1/3">
+                    <!-- Can be used for logo or other info -->
+                </div>
+            </div>
+            <div class="w-full bg-slate-700 rounded-full mt-3">
+                <div id="progress-bar" class="progress-bar rounded-full"></div>
+            </div>
+        </footer>
+    </main>
+    
+    <script>
+        lucide.createIcons();
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const slides = document.querySelectorAll('.slide');
+            const nextBtn = document.getElementById('next-btn');
+            const prevBtn = document.getElementById('prev-btn');
+            const slideCounter = document.getElementById('slide-counter');
+            const progressBar = document.getElementById('progress-bar');
+            
+            let currentSlide = 0;
+            const totalSlides = slides.length;
+
+            function updateSlide(index) {
+                // Remove active class from all slides
+                slides.forEach(slide => slide.classList.remove('active'));
+                
+                // Add active class to the current slide
+                slides[index].classList.add('active');
+                
+                // Update counter
+                slideCounter.textContent = `${index + 1} / ${totalSlides}`;
+                
+                // Update progress bar
+                progressBar.style.width = `${((index + 1) / totalSlides) * 100}%`;
+
+                // Update button states
+                prevBtn.disabled = index === 0;
+                nextBtn.disabled = index === totalSlides - 1;
+
+                currentSlide = index;
+            }
+
+            nextBtn.addEventListener('click', () => {
+                if (currentSlide < totalSlides - 1) {
+                    updateSlide(currentSlide + 1);
+                }
+            });
+
+            prevBtn.addEventListener('click', () => {
+                if (currentSlide > 0) {
+                    updateSlide(currentSlide - 1);
+                }
+            });
+            
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowRight' && !nextBtn.disabled) {
+                    nextBtn.click();
+                } else if (e.key === 'ArrowLeft' && !prevBtn.disabled) {
+                    prevBtn.click();
+                }
+            });
+
+            // Initial setup
+            updateSlide(0);
+        });
+    </script>
+</body>
+</html>
